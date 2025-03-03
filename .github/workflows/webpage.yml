@@ -1,0 +1,30 @@
+name: YouTube Live Stream (Webpage)
+
+on:
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  stream:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Install Dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y ffmpeg xvfb
+
+    - name: Install Puppeteer
+      run: |
+        npm install -g puppeteer
+
+    - name: Stream Webpage
+      run: |
+        export DISPLAY=:99
+        Xvfb :99 -screen 0 1280x720x24 &
+        sleep 5
+        node stream.js
+      env:
+        STREAM_KEY: ${{ secrets.YOUTUBE_STREAM_KEY }}
