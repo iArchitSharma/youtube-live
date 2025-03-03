@@ -11,6 +11,11 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
+    - name: Install FFmpeg
+      run: |
+        sudo apt update
+        sudo apt install -y ffmpeg
+
     - name: Generate playlist.txt
       run: |
         rm -f playlist.txt  # Remove old playlist file if exists
