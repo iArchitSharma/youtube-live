@@ -1,0 +1,35 @@
+name: Stream MP4 Videos to YouTube Live
+
+on:
+  workflow_dispatch:  # Allows manual execution
+
+jobs:
+  stream-video:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Generate Playlist File
+      run: |
+        echo "Creating playlist.txt..."
+        rm -f playlist.txt  # Ensure old file is deleted
+        for video in "Code Music"/*.mp4; do
+          if [ -f "$video" ]; then
+            echo "file 'https://raw.githubusercontent.com/${{ github.repository }}/main/$video'" >> playlist.txt
+          fi
+        done
+        cat playlist.txt  # Debugging: Show playlist content
+
+    - name: Install FFmpeg
+      run: sudo apt update && sudo apt install -y ffmpeg
+
+    - name: Stream Videos to YouTube
+      env:
+        STREAM_KEY: ${{ secrets.YOUTUBE_STREAM_KEY }}
+      run: |
+        ffmpeg -re -f concat -safe 0 -i playlist.txt \
+               -c:v libx264 -preset veryfast -maxrate 3000k -bufsize 6000k \
+               -pix_fmt yuv420p -g 50 -c:a aac -b:a 128k -ar 44100 \
+               -f flv "rtmp://a.rtmp.youtube.com/live2/$STREAM_KEY"
