@@ -26,7 +26,7 @@ jobs:
         Xvfb :99 -screen 0 1280x720x24 &
         # Set the display environment variable for subsequent steps
         export DISPLAY=:99
-        # Give Xvfb a moment to start
+        # Allow time for Xvfb to initialize
         sleep 5
 
     - name: Launch Webpage with Puppeteer
@@ -38,13 +38,13 @@ jobs:
 
     - name: Capture Screenshot for Debug
       run: |
-        # Capture one frame from the virtual display to verify it's rendering the webpage
+        # Capture one frame from the virtual display to verify that your webpage is rendering correctly
         ffmpeg -f x11grab -video_size 1280x720 -i :99.0 -vframes 1 screenshot.png
       env:
         DISPLAY: :99
 
     - name: Upload Screenshot Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: screenshot
         path: screenshot.png
