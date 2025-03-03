@@ -1,35 +1,30 @@
-name: Stream MP4 Videos to YouTube Live
+name: YouTube Live Stream
 
 on:
-  workflow_dispatch:  # Allows manual execution
+  workflow_dispatch:  # Allows manual triggering
 
 jobs:
-  stream-video:
+  stream:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Generate Playlist File
+    - name: Generate playlist.txt
       run: |
-        echo "Creating playlist.txt..."
-        rm -f playlist.txt  # Ensure old file is deleted
-        for video in "Code Music"/*.mp4; do
-          if [ -f "$video" ]; then
-            echo "file 'https://raw.githubusercontent.com/${{ github.repository }}/main/$video'" >> playlist.txt
-          fi
+        rm -f playlist.txt  # Remove old playlist file if exists
+        find "Code Music" -type f -name "*.mp4" | while read file; do
+          echo "file 'https://raw.githubusercontent.com/${{ github.repository }}/main/${file// /%20}'" >> playlist.txt
         done
-        cat playlist.txt  # Debugging: Show playlist content
+        cat playlist.txt  # Debugging: Print the playlist
 
-    - name: Install FFmpeg
-      run: sudo apt update && sudo apt install -y ffmpeg
-
-    - name: Stream Videos to YouTube
-      env:
-        STREAM_KEY: ${{ secrets.YOUTUBE_STREAM_KEY }}
+    - name: Run FFmpeg Stream
       run: |
-        ffmpeg -re -f concat -safe 0 -i playlist.txt \
+        ffmpeg -protocol_whitelist file,http,https,tcp,tls \
+               -re -f concat -safe 0 -i playlist.txt \
                -c:v libx264 -preset veryfast -maxrate 3000k -bufsize 6000k \
                -pix_fmt yuv420p -g 50 -c:a aac -b:a 128k -ar 44100 \
-               -f flv "rtmp://a.rtmp.youtube.com/live2/$STREAM_KEY"
+               -f flv "rtmp://a.rtmp.youtube.com/live2/${{ secrets.YOUTUBE_STREAM_KEY }}"
+      env:
+        STREAM_KEY: ${{ secrets.YOUTUBE_STREAM_KEY }}
