@@ -16,9 +16,10 @@ jobs:
         sudo apt update
         sudo apt install -y ffmpeg xvfb
 
-    - name: Install Puppeteer
+    - name: Install Node.js and Puppeteer
       run: |
-        npm install -g puppeteer
+        sudo apt install -y nodejs npm
+        npm install puppeteer
 
     - name: Stream Webpage
       run: |
