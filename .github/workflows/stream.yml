@@ -19,7 +19,7 @@ jobs:
     - name: Generate playlist.txt
       run: |
         rm -f playlist.txt  # Remove old playlist file if exists
-        find "Nostalgia Music" -type f -name "*.mp4" | while read file; do
+        find "Code Music" -type f -name "*.mp4" | while read file; do
           echo "file 'https://raw.githubusercontent.com/${{ github.repository }}/main/${file// /%20}'" >> playlist.txt
         done
         cat playlist.txt  # Debugging: Print the playlist
