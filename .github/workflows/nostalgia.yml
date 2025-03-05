@@ -1,0 +1,35 @@
+name: Nostalgia YT Live Stream
+
+on:
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  stream:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Install FFmpeg
+      run: |
+        sudo apt update
+        sudo apt install -y ffmpeg
+
+    - name: Generate playlist.txt
+      run: |
+        rm -f playlist.txt  # Remove old playlist file if exists
+        find "Nostalgia Music" -type f -name "*.mp4" | while read file; do
+          echo "file 'https://raw.githubusercontent.com/${{ github.repository }}/main/${file// /%20}'" >> playlist.txt
+        done
+        cat playlist.txt  # Debugging: Print the playlist
+
+    - name: Run FFmpeg Stream
+      run: |
+        ffmpeg -protocol_whitelist file,http,https,tcp,tls \
+               -re -f concat -safe 0 -i playlist.txt \
+               -c:v libx264 -preset veryfast -maxrate 3000k -bufsize 6000k \
+               -pix_fmt yuv420p -g 50 -c:a aac -b:a 128k -ar 44100 \
+               -f flv "rtmp://a.rtmp.youtube.com/live2/${{ secrets.YOUTUBE_STREAM_KEY }}"
+      env:
+        STREAM_KEY: ${{ secrets.YOUTUBE_STREAM_KEY }}
